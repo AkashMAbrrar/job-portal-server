@@ -34,9 +34,13 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-
-    //1: jobs related api's (crud start from here)
+    // ---------* create collection*-------------
+    //1: jobs related api's (crud start from here)=> collection -1
     const jobsCollection = client.db("JobPortal").collection("jobs");
+    // collections of job applicants
+    const JobApplicantsCollection = client
+      .db("JobPortal")
+      .collection("job_applications");
 
     // 2: get api for get all the data from database
     app.get("/jobs", async (req, res) => {
@@ -49,6 +53,20 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobsCollection.findOne(query);
+      res.send(result);
+    });
+
+    // job applications api's  (data sending form client)
+    // get all data, get one data, some data [0,1,many]
+    app.get("/job-application", async (req, res) => {
+      const email = req.query.email;
+      const query = { applicant_email: email };
+      const result = await JobApplicantsCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.post("/job-applications", async (req, res) => {
+      const application = req.body;
+      const result = await JobApplicantsCollection.insertOne(application);
       res.send(result);
     });
   } finally {
