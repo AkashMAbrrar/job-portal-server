@@ -43,8 +43,15 @@ async function run() {
       .collection("job_applications");
     //  jobs related apis
     // 2: get api for get all the data from database
+    // 3: get data by recruiter with email query(conditionally)
     app.get("/jobs", async (req, res) => {
-      const cursor = jobsCollection.find();
+      const email = req.query.email;
+      let query = {};
+      if (email) {
+        query = { hrEmail: email };
+      }
+
+      const cursor = jobsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
