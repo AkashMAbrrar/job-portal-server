@@ -41,7 +41,7 @@ async function run() {
     const JobApplicantsCollection = client
       .db("JobPortal")
       .collection("job_applications");
-
+    //  jobs related apis
     // 2: get api for get all the data from database
     app.get("/jobs", async (req, res) => {
       const cursor = jobsCollection.find();
@@ -55,6 +55,12 @@ async function run() {
       const result = await jobsCollection.findOne(query);
       res.send(result);
     });
+    // new job creation api
+    app.post("/jobs", async (req, res) => {
+      const newJob = req.body;
+      const result = await jobsCollection.insertOne(newJob);
+      res.send(result);
+    });
 
     // job applications api's  (data sending form client)
     // get all data, get one data, some data [0,1,many]
@@ -65,7 +71,7 @@ async function run() {
 
       // worse way to aggregate data (this is not the best way)
       for (const application of result) {
-        console.log(application.job_id);
+        // console.log(application.job_id);
         const query1 = { _id: new ObjectId(application.job_id) };
         const job = await jobsCollection.findOne(query1);
         if (job) {
