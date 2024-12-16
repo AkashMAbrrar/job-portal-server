@@ -1,13 +1,26 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
 //middleware
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+};
+// app.use(
+//   cors({
+//     origin: ["http//localhost:5173"],
+//     credentials: true,
+//   })
+// );
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 // root api
 app.get("/", async (req, res) => {
@@ -41,6 +54,19 @@ async function run() {
     const JobApplicantsCollection = client
       .db("JobPortal")
       .collection("job_applications");
+
+    // Auth related api's
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "1h" });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: false, // http//localhost:5173/signin
+        })
+        .send({ success: true });
+    });
+
     //  jobs related apis
     // 2: get api for get all the data from database
     // 3: get data by recruiter with email query(conditionally)
@@ -74,6 +100,7 @@ async function run() {
     app.get("/job-application", async (req, res) => {
       const email = req.query.email;
       const query = { applicant_email: email };
+      console.log("cuk cuk cookie", req.cookies);
       const result = await JobApplicantsCollection.find(query).toArray();
 
       // worse way to aggregate data (this is not the best way)
